@@ -1,0 +1,7 @@
+name = "ai-interview-system"
+compatibility_date = "2026-05-16"
+pages_build_output_dir = "public"
+
+[vars]
+OPENAI_MODEL = "gpt-5.2"
+OPENAI_REVIEW_MODEL = "gpt-5.2"

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Interview System</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div id="adminApp" class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-stack">
+          <div class="brand-lockup">
+            <span class="brand-mark" aria-hidden="true">IO</span>
+            <div>
+              <p class="eyebrow">Interview OS</p>
+              <h1>Hiring Console</h1>
+            </div>
+          </div>
+          <p class="sidebar-meta">Technical hiring studio</p>
+        </div>
+        <nav class="nav-list" aria-label="Admin navigation">
+          <button class="nav-item active" type="button" data-view="create">Create</button>
+          <button class="nav-item" type="button" data-view="interviews">Interviews</button>
+          <button class="nav-item" type="button" data-view="prompts">Prompts</button>
+          <button class="nav-item" type="button" data-view="review">Review</button>
+        </nav>
+        <div class="sidebar-footer">
+          <span class="environment-badge">Local studio</span>
+          <button id="logoutBtn" class="ghost-button hidden" type="button">Sign out</button>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <section id="loginPanel" class="login-layout">
+          <form id="loginForm" class="form-panel">
+            <div class="section-heading">
+              <p class="eyebrow">Admin access</p>
+              <h2>Sign in to the console</h2>
+            </div>
+            <label>
+              Email
+              <input name="email" type="email" autocomplete="email" value="admin@example.com" required />
+            </label>
+            <label>
+              Password
+              <input name="password" type="password" autocomplete="current-password" value="password" required />
+            </label>
+            <button class="primary-button" type="submit">Sign in</button>
+          </form>
+        </section>
+
+        <section id="dashboardPanel" class="dashboard hidden">
+          <header class="topbar">
+            <div>
+              <p class="eyebrow">Admin dashboard</p>
+              <h2 id="viewTitle">Create interview</h2>
+            </div>
+            <div class="status-strip">
+              <span id="apiStatus" class="status-pill">Checking API</span>
+              <button id="refreshBtn" class="secondary-button" type="button">Refresh</button>
+            </div>
+          </header>
+
+          <section class="summary-grid" aria-label="Interview summary">
+            <div class="metric-tile">
+              <span>Open interviews</span>
+              <strong id="openInterviewCount">0</strong>
+            </div>
+            <div class="metric-tile">
+              <span>Reviews ready</span>
+              <strong id="reviewReadyCount">0</strong>
+            </div>
+            <div class="metric-tile">
+              <span>Prompt tracks</span>
+              <strong id="promptTrackCount">0</strong>
+            </div>
+          </section>
+
+          <section id="createView" class="view-grid">
+            <form id="createInterviewForm" class="form-panel wide">
+              <div class="section-heading">
+                <p class="eyebrow">Interview setup</p>
+                <h3>Candidate and interview prompt</h3>
+              </div>
+              <div class="field-grid">
+                <label>
+                  Candidate name
+                  <input name="full_name" required placeholder="Aarav Sharma" />
+                </label>
+                <label>
+                  Candidate email
+                  <input name="email" type="email" placeholder="candidate@example.com" />
+                </label>
+                <label>
+                  Age
+                  <input name="age" type="number" min="16" max="80" placeholder="21" />
+                </label>
+                <label>
+                  Experience years
+                  <input name="experience_years" type="number" min="0" step="0.5" value="1" />
+                </label>
+                <label>
+                  Interview prompt
+                  <select id="promptTemplateSelect" name="prompt_template_key">
+                    <option value="sde1_default">SDE 1 Interview (sde1)</option>
+                    <option value="sde2_default">SDE 2 Interview (sde2)</option>
+                    <option value="sre_default">SRE Interview (sre)</option>
+                    <option value="data_analyst_default">Data Analyst Interview (data_analyst)</option>
+                    <option value="frontend_default">Frontend Engineer Interview (frontend)</option>
+                    <option value="backend_default">Backend Engineer Interview (backend)</option>
+                  </select>
+                </label>
+                <label>
+                  Duration
+                  <select name="duration_minutes">
+                    <option value="10">10 minutes</option>
+                    <option value="20" selected>20 minutes</option>
+                    <option value="30">30 minutes</option>
+                    <option value="45">45 minutes</option>
+                  </select>
+                </label>
+              </div>
+              <label>
+                Topics to pay attention to
+                <input name="focus_topics" placeholder="load balancing, SQL joins, incident response" />
+              </label>
+              <label>
+                Notes for admin
+                <textarea name="notes" rows="4" placeholder="College, branch, referral, or context"></textarea>
+              </label>
+              <div class="button-row">
+                <button class="primary-button" type="submit">Create interview</button>
+                <button class="secondary-button" type="reset">Clear</button>
+              </div>
+            </form>
+
+            <aside id="createdInterviewPanel" class="result-panel invite-card hidden" aria-live="polite">
+              <p class="eyebrow">Generated access</p>
+              <h3>Candidate invite</h3>
+              <dl class="details-list">
+                <div>
+                  <dt>Link</dt>
+                  <dd id="generatedLink"></dd>
+                </div>
+                <div>
+                  <dt>Code</dt>
+                  <dd id="generatedCode" class="code-text"></dd>
+                </div>
+              </dl>
+              <div class="button-row">
+                <button id="copyInviteBtn" class="secondary-button" type="button">Copy invite</button>
+              </div>
+            </aside>
+          </section>
+
+          <section id="interviewsView" class="hidden">
+            <div class="section-heading">
+              <p class="eyebrow">Pipeline</p>
+              <h3>Recent interviews</h3>
+            </div>
+            <div id="interviewList" class="interview-list"></div>
+          </section>
+
+          <section id="promptsView" class="hidden">
+            <div class="section-heading">
+              <p class="eyebrow">Prompt library</p>
+              <h3>Interview tracks</h3>
+            </div>
+            <div class="prompt-layout">
+              <div>
+                <div class="button-row prompt-toolbar">
+                  <button id="newPromptBtn" class="secondary-button" type="button">New track</button>
+                </div>
+                <div id="promptList" class="prompt-list"></div>
+              </div>
+              <form id="promptForm" class="form-panel wide">
+                <div class="section-heading">
+                  <p class="eyebrow">Prompt editor</p>
+                  <h3 id="promptEditorTitle">Select a track</h3>
+                </div>
+                <div class="field-grid">
+                  <label>
+                    Prompt track key
+                    <input name="template_key" required placeholder="sde3_default" />
+                  </label>
+                  <label>
+                    Mapped job level key
+                    <input name="role_type" required placeholder="sde3" />
+                  </label>
+                </div>
+                <label>
+                  Track title
+                  <input name="title" required placeholder="SDE 3 Interview" />
+                </label>
+                <label>
+                  Opening question
+                  <textarea name="opening_question" rows="3" required placeholder="Let's begin with..."></textarea>
+                </label>
+                <label>
+                  System prompt
+                  <textarea name="body" rows="10" required placeholder="You are conducting..."></textarea>
+                </label>
+                <label class="check-row">
+                  <input name="active" type="checkbox" checked />
+                  Active
+                </label>
+                <div class="button-row">
+                  <button class="primary-button" type="submit">Save prompt</button>
+                  <button id="resetPromptBtn" class="secondary-button" type="button">Reset</button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section id="reviewView" class="hidden">
+            <div class="section-heading">
+              <p class="eyebrow">Evaluation</p>
+              <h3>Review report</h3>
+            </div>
+            <div id="reviewPanel" class="empty-state">Select an interview from the list to view its review.</div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div id="candidateApp" class="candidate-shell hidden">
+      <header class="candidate-header">
+        <div class="candidate-brand">
+          <span class="brand-mark candidate-mark" aria-hidden="true">IO</span>
+          <div>
+            <p class="eyebrow">Candidate interview</p>
+            <h1 id="candidateTitle">Interview session</h1>
+          </div>
+        </div>
+        <div class="candidate-actions">
+          <button id="submitInterviewBtn" class="danger-button hidden" type="button">Submit interview</button>
+          <div id="timer" class="timer">--:--</div>
+        </div>
+      </header>
+
+      <main class="candidate-main">
+        <section id="accessPanel" class="form-panel access-panel">
+          <div class="section-heading">
+            <p class="eyebrow">Access code</p>
+            <h2>Start your interview</h2>
+          </div>
+          <form id="candidateAccessForm">
+            <label>
+              Unique code
+              <input name="code" autocomplete="one-time-code" maxlength="12" required />
+            </label>
+            <button class="primary-button" type="submit">Start interview</button>
+          </form>
+        </section>
+
+        <section id="chatPanel" class="chat-panel hidden">
+          <div class="chat-toolbar">
+            <div>
+              <p class="eyebrow">Live session</p>
+              <h2>Interview transcript</h2>
+            </div>
+            <span id="interviewStatusLine" class="status-pill ok">In progress</span>
+          </div>
+          <div id="messageList" class="message-list" aria-live="polite"></div>
+          <form id="messageForm" class="message-form">
+            <textarea name="message" rows="3" placeholder="Type your answer..." required></textarea>
+            <div class="composer-actions">
+              <button class="primary-button" type="submit">Send</button>
+              <button id="submitInterviewBtnFooter" class="secondary-button submit-button" type="button">Submit interview</button>
+            </div>
+          </form>
+        </section>
+
+        <section id="candidateDonePanel" class="done-panel hidden">
+          <p class="eyebrow">Submitted</p>
+          <h2>Your interview has been submitted.</h2>
+          <p class="muted">Submission received.</p>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
